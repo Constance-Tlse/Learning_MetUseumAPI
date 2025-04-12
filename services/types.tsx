@@ -1,12 +1,5 @@
 export interface PaintingProps {
-    paint: Painting,
-    constituent: Constituent,
-}
 
-interface Painting {
-    img: string,
-    title: string,
-    description: string,
 }
 
 interface Constituent {

@@ -6,8 +6,8 @@ function App() {
     return (
         <>
             <nav>
-                <Link to="/">Home</Link>
-                <Link to="/about">About</Link>
+                <Link to="/">L'index</Link>
+                <Link to="/+">Aller plus loin</Link>
             </nav>
             <main>
                 <Outlet />

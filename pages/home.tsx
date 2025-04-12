@@ -14,9 +14,10 @@ function home() {
             const response = await fetch(url);
             const datalist = await response.json();
             setData(datalist);
+            console.log(Data);
         }
-        console.log(Data);
         FetchList();
+
     }, []);
 
 
@@ -37,10 +38,10 @@ function home() {
     }, [Data]);
 
 
-
+   // {DataArt && DataArt.map((test) => <Paint key={test.objectID} /> )}
 
 return <>
-    {DataArt && DataArt.map((test) => <Paint key={test.objectID} /> )}
+
 </>;
 }
 
