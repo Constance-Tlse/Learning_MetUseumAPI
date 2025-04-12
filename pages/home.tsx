@@ -1,48 +1,63 @@
-import { useState, useEffect } from "react";
-import { PaintingProps } from "../services/types";
-import Paint from "../components/painting.tsx";
+import {useEffect, useState} from "react";
+import {PaintingProps} from "../services/types";
 
 function home() {
-    const [Data, setData] = useState<number[] | undefined>()
-    const [DataArt, setDataArt] = useState< PaintingProps[] | undefined>()
+    const [DataOuverture, setDataOuverture] = useState<number[] | undefined>()
+    const [DataLivret, setDataLivret] = useState< PaintingProps[] | undefined>()
 
-    useEffect(() => {
-        async function FetchList() {
+    async function Livret(objectIDs: number[], setDataLivret: (data: PaintingProps[]) => void) {
 
-            const theme = 'CasparDavidFriedrich';
-            const url = `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${theme}`;
-            const response = await fetch(url);
-            const datalist = await response.json();
-            setData(datalist);
-            console.log(Data);
+        const TailleduLot = 80;
+        const Delai = 1000;
+
+        for (let i = 0; i < objectIDs.length; i += TailleduLot) {
+            const Lot = objectIDs.slice(i, i + TailleduLot);
+            const LivretData = await Promise.all(
+                Lot.map(async (objectID) => {
+                    const response = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${objectID}`);
+                    return response.json();
+                })
+            );
+            setDataLivret((prevDataArt) => [...(prevDataArt || []), ...LivretData]);
+            await new Promise((resolve) => setTimeout(resolve, Delai)); // Attendre avant le prochain lot
         }
-        FetchList();
+    }
+        useEffect(() => {
+            async function Ouverture() {
+                const theme = 'Hokusai';
+                const url = `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${theme}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                setDataOuverture(data.objectIDs);
 
-    }, []);
-
-
-
-    useEffect(() => {
-        async function Paintingdata(data: number[] | undefined) {
-            if (!data) {
-                return
+                if (data.objectIDs) {
+                    await Livret(data.objectIDs, setDataLivret);
+                }
             }
-            const datalistid = data[0];
-            const url = `https://collectionapi.metmuseum.org/public/collection/v1/objects/${datalistid}`;
-            const response = await fetch(url);
-            const art = await response.json();
-            setDataArt(art);
-            console.log(DataArt);
-        }
-        Paintingdata(Data)
-    }, [Data]);
+            Ouverture();
+        }, []);
 
+    useEffect(() => {
+        console.log(DataOuverture);
+    }, [DataOuverture]);
 
-   // {DataArt && DataArt.map((test) => <Paint key={test.objectID} /> )}
+    useEffect(() => {
+        console.log(DataLivret);
+    }, [DataLivret]);
 
-return <>
+    return (
+        <div style={{ display: "grid", gridTemplateColumns: "auto auto auto", gridGap: "50px" }}>
+            {DataLivret && DataLivret.map((art) => (
+                    <section key={art.objectID}>
+                        <img src={art.primaryImageSmall} style={{ width: "100%" }} />
+                        <h3>{art.artistAlphaSort}</h3>
+                        <p>{art.objectDate} {art.medium}</p>
+                        <p>{art.department}</p>
+                    </section>
+                ))}
+        </div>
+    );
 
-</>;
 }
 
 export default home;

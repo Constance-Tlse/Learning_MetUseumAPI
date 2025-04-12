@@ -5,6 +5,12 @@
   text-align: center;
 }
 
+section {
+  display: table;
+  height: 20vh;
+  width: 20vw;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

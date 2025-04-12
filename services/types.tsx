@@ -1,5 +1,7 @@
 export interface PaintingProps {
-
+    objectID: number;
+    title: string;
+    primaryImage: string;
 }
 
 interface Constituent {
