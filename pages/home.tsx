@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import useSWR from 'swr';
 import {PaintingProps} from "../services/types";
 
 function home() {
