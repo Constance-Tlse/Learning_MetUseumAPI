@@ -1,64 +1,92 @@
-import {useEffect, useState} from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
-import {PaintingProps} from "../services/types";
+import {PaintingProps} from "../services/types.tsx";
 
-function home() {
-    const [DataOuverture, setDataOuverture] = useState<number[] | undefined>()
-    const [DataLivret, setDataLivret] = useState< PaintingProps[] | undefined>()
+function Home() {
 
-    async function Livret(objectIDs: number[], setDataLivret: (data: PaintingProps[]) => void) {
+        const [DataOuverture, setDataOuverture] = useState<PaintingProps[]>([]);
+        const theme = 'Hokusai';
+        const searchUrl = `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${theme}`;
 
-        const TailleduLot = 80;
-        const Delai = 1000;
-
-        for (let i = 0; i < objectIDs.length; i += TailleduLot) {
-            const Lot = objectIDs.slice(i, i + TailleduLot);
-            const LivretData = await Promise.all(
-                Lot.map(async (objectID) => {
-                    const response = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${objectID}`);
-                    return response.json();
-                })
-            );
-            setDataLivret((prevDataArt) => [...(prevDataArt || []), ...LivretData]);
-            await new Promise((resolve) => setTimeout(resolve, Delai)); // Attendre avant le prochain lot
-        }
-    }
-        useEffect(() => {
-            async function Ouverture() {
-                const theme = 'Hokusai';
-                const url = `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${theme}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                setDataOuverture(data.objectIDs);
-
-                if (data.objectIDs) {
-                    await Livret(data.objectIDs, setDataLivret);
-                }
+        const { data: searchData, error: searchError } = useSWR<{ objectIDs: number[] }>(searchUrl, async (url) => {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(` ${url} ${response.status}`);
             }
-            Ouverture();
+            return await response.json();
+        });
+
+        const Livret = useCallback(async (objectIDs: number[]): Promise<PaintingProps[]> => {
+            const TailleduLot = 80;
+            const Delai = 1000;
+            const Results: PaintingProps[] = [];
+
+            for (let i = 0; i < objectIDs.length; i += TailleduLot) {
+                const Lot = objectIDs.slice(i, i + TailleduLot);
+                const LivretData = await Promise.all(
+                    Lot.map(async (id) => {
+                        try {
+                            const response = await fetch(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
+                            if (!response.ok) {
+                                throw new Error(`${id} ${response.status}`);
+                            }
+                            const artData = await response.json() as PaintingProps;
+                            return artData;
+                        } catch (error) {
+                            console.error(`${id}`, error);
+                            return null;
+                        }
+                    })
+                );
+                Results.push(...LivretData.filter((result): result is PaintingProps => result !== null));
+                await new Promise((resolve) => setTimeout(resolve, Delai));
+            }
+            return Results;
         }, []);
 
-    useEffect(() => {
-        console.log(DataOuverture);
-    }, [DataOuverture]);
+        useEffect(() => {
+            if (searchData?.objectIDs) {
+                const getArtData = async () => {
+                    try {
+                        const Synopsis = await Livret(searchData.objectIDs);
+                        setDataOuverture(Synopsis);
+                    } catch (error) {
+                        console.error(error)
+                    }
+                };
+                getArtData();
+            }
+        }, [searchData?.objectIDs, Livret]);
+
 
     useEffect(() => {
-        console.log(DataLivret);
-    }, [DataLivret]);
+        console.log("DataOuverture", searchData?.objectIDs);
+    }, [searchData?.objectIDs]);
+
+    useEffect(() => {
+        console.log("DataLivret", DataOuverture);
+    }, [DataOuverture]);
+
+    if (searchError) return <div>Erreur lors de la récupération des données de recherche</div>;
+    if (!searchData) return <div>Chargement...</div>;
 
     return (
         <div style={{ display: "grid", gridTemplateColumns: "auto auto auto", gridGap: "50px" }}>
-            {DataLivret && DataLivret.map((art) => (
-                    <section key={art.objectID}>
-                        <img src={art.primaryImageSmall} style={{ width: "100%" }} />
-                        <h3>{art.artistAlphaSort}</h3>
-                        <p>{art.objectDate} {art.medium}</p>
-                        <p>{art.department}</p>
-                    </section>
-                ))}
+            {DataOuverture?.map((art) => {
+                if (art.primaryImageSmall) {
+                    return (
+                        <section key={art.objectID}>
+                            <img src={art.primaryImageSmall} style={{ width: "100%" }} alt={art.title} />
+                            <h3>{art.artistAlphaSort}</h3>
+                            <p>{art.objectDate} {art.medium}</p>
+                            <p>{art.department}</p>
+                        </section>
+                    );
+                }
+                return null;
+            })}
         </div>
     );
-
 }
 
-export default home;
+export default Home;

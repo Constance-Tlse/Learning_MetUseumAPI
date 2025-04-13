@@ -2,6 +2,10 @@ export interface PaintingProps {
     objectID: number;
     title: string;
     primaryImage: string;
+    constituent: Constituent;
+    Measurement: Measurement;
+    Tag:Tag;
+    AdditionalImageData: AdditionalImageData;
 }
 
 interface Constituent {
