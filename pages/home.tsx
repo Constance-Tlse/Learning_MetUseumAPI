@@ -14,7 +14,13 @@ function Home() {
                 throw new Error(` ${url} ${response.status}`);
             }
             return await response.json();
-        });
+            },
+            {
+                revalidateOnFocus: false,
+                shouldRetryOnError: false,
+                revalidateIfStale: true,
+            }
+        );
 
         const Livret = useCallback(async (objectIDs: number[]): Promise<PaintingProps[]> => {
             const TailleduLot = 80;
