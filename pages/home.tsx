@@ -5,8 +5,6 @@ function Home() {
     const { DataOuverture } = useContext(DataLivret)!;
 
     const art1 = DataOuverture?.find(art => art.objectID === 39799);
-
-
     console.log(DataOuverture)
 
     return (
