@@ -1,5 +1,11 @@
 import { createContext } from "react";
+import { PaintingProps } from "../services/types";
 
-const dataLivret = createContext(null);
+type DataLivretContextType = {
+    DataOuverture: PaintingProps[];
+    setDataOuverture: React.Dispatch<React.SetStateAction<PaintingProps[]>>;
+};
 
-export default dataLivret;
+const DataLivret = createContext<DataLivretContextType | null>(null);
+
+export default DataLivret;
