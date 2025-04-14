@@ -11,7 +11,7 @@ function Home() {
 <>
         <div>
             {art1 && (
-                <section className="table h-[20vh] w-[20vw]">
+                <section className="table h-[50vh] w-[50vw]">
                     <img src={art1.primaryImageSmall} style={{ width: "100%" }} alt={art1.title} />
                     <h3>{art1.title}</h3>
                     <p>{art1.artistAlphaSort}</p>
